@@ -1,41 +1,256 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Surface</title>
-    <style>
-      body {
-        font-family: system-ui, sans-serif;
-        background: linear-gradient(135deg, #4a00e0, #8e2de2);
-        color: white;
-        text-align: center;
-        padding: 60px 20px;
-      }
-      h1 {
-        font-size: 3em;
-        margin-bottom: 0.3em;
-      }
-      p {
-        font-size: 1.2em;
-        margin-bottom: 1.5em;
-      }
-      button {
-        background: white;
-        color: #4a00e0;
-        border: none;
-        padding: 15px 25px;
-        font-size: 1em;
-        border-radius: 10px;
-        cursor: pointer;
-      }
-      button:hover {
-        opacity: 0.9;
-      }
-    </style>
-  </head>
-  <body>
+<!doctype html>
+<html lang="en" data-theme="midnight">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Surface — Go below the surface</title>
+  <style>
+    :root{
+      --grad1:#6B3DF0; --grad2:#5A5CE6; --grad3:#2FB6FF;
+      --glass:rgba(255,255,255,0.06); --txt:#fff; --mut:#C9C4E3; --acc:#FF7AEB;
+    }
+    [data-theme="light"]{
+      --grad1:#ffffff; --grad2:#F6F7FF; --grad3:#EDEFFF;
+      --glass:rgba(0,0,0,0.06); --txt:#1b1333; --mut:#5a5670; --acc:#6B3DF0;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--txt);
+      font:16px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto;
+      background:linear-gradient(180deg,var(--grad1),var(--grad2),var(--grad3)) fixed;
+      min-height:100svh; padding-bottom:88px;
+    }
+    a{color:var(--acc)}
+    .top{display:flex;gap:12px;align-items:center;padding:16px}
+    .logo{width:36px;height:36px;border-radius:12px;background:var(--glass);
+      display:grid;place-items:center;font-weight:800}
+    .search{flex:1;display:flex;gap:8px;background:var(--glass);padding:8px;border-radius:24px;backdrop-filter:blur(10px)}
+    .search input{flex:1;border:none;background:transparent;color:var(--txt);outline:none}
+    .btn{border:none;border-radius:20px;padding:10px 16px;background:var(--acc);color:#111;font-weight:700;cursor:pointer}
+    .icon{background:var(--glass);border:none;border-radius:12px;padding:8px 10px;cursor:pointer}
+    .main{padding:12px 16px 32px; max-width:980px; margin:0 auto}
+    h1{font-size:38px;margin:8px 0 6px}
+    p{color:var(--mut);margin:0 0 12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{border:none;padding:8px 12px;border-radius:999px;background:var(--glass);color:var(--txt);cursor:pointer}
+    .card{
+      background:var(--glass);border-radius:20px;padding:16px;backdrop-filter:blur(12px);margin:12px 0;
+      box-shadow:0 10px 40px rgba(35,20,60,.35)
+    }
+    .card h3{margin:0 0 6px}
+    .thumb{width:100%; border-radius:12px; margin:10px 0}
+    .meta{font-size:13px;color:var(--mut)}
+    .badge{display:inline-block;background:var(--acc);color:#111;border-radius:8px;padding:2px 8px;font-size:12px;margin-left:6px}
+    .actions{display:flex;gap:8px;margin-top:10px}
+    .actions .btn{border-radius:10px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+
+    .cta{
+      margin:28px 0; padding:20px; border-radius:16px; background:var(--glass); backdrop-filter:blur(8px);
+      display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+    }
+    .cta h2{margin:0}
+    .cta p{margin:2px 0 0}
+
+    .foot{position:fixed;inset:auto 0 0 0;display:flex;justify-content:space-around;padding:8px;background:var(--glass);backdrop-filter:blur(10px)}
+    .nav{border:none;background:transparent;color:var(--txt);padding:10px 16px;border-radius:12px;cursor:pointer}
+    .nav.center{background:var(--acc);color:#111;font-weight:800;border-radius:16px}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="logo">S</div>
+    <div class="search">
+      <input id="q" placeholder="Trending: Stranger Things • 6-7 • Ponce de León" />
+      <button id="ask" class="btn">Ask</button>
+    </div>
+    <button id="theme" class="icon" title="Switch theme">🎨</button>
+  </header>
+
+  <main class="main">
     <h1>Surface</h1>
-    <p>Go below the surface — discover more than search results.</p>
-    <button>Start Deep Dive</button>
-  </body>
+    <p>Quick deep-dives, visual learning, and real sources — without 10 tabs.</p>
+
+    <div class="row">
+      <div class="chips" id="chips"></div>
+      <button id="addTopic" class="btn" title="Add your own card">+ Add Topic</button>
+    </div>
+
+    <section id="results"></section>
+
+    <div class="cta">
+      <div>
+        <h2>Join the Surface beta</h2>
+        <p>Be first to try Deep Dive, Visual Mode, and Study Sessions.</p>
+      </div>
+      <!-- replace the href with your Google Form or ConvertKit link -->
+      <a class="btn" id="waitlistBtn" href="#" target="_blank" rel="noopener">Join the waitlist</a>
+    </div>
+
+    <h2>Your Library</h2>
+    <div id="lib" class="grid"></div>
+  </main>
+
+  <footer class="foot">
+    <button class="nav" onclick="window.scrollTo({top:0,behavior:'smooth'})">Home</button>
+    <button class="nav center">S</button>
+    <button class="nav" onclick="document.getElementById('waitlistBtn').scrollIntoView({behavior:'smooth'})">Community</button>
+  </footer>
+
+  <script>
+    // ------------- Demo data -------------
+    const BASE = {
+      "6-7": {
+        title: "“6-7” Meme — what does it mean?",
+        img: "https://picsum.photos/960/480?random=7",
+        tldr: [
+          "Short explainer + common usage.",
+          "Earliest posts and how it spread.",
+          "Current vibe with examples."
+        ],
+        sources: [
+          ["Example TikTok","#"],
+          ["KnowYourMeme","#"],
+          ["Original Audio","#"]
+        ],
+        conf: "Medium — slang evolves fast."
+      },
+      "Anne Frank": {
+        title: "Anne Frank — quick deep dive",
+        img: "https://picsum.photos/960/480?random=3",
+        tldr: [
+          "Jewish diarist hiding in Nazi-occupied Netherlands (1942–44).",
+          "Diary published after war; key testimony of the Holocaust.",
+          "Multiple museums and primary sources."
+        ],
+        sources: [
+          ["Anne Frank House","#"],
+          ["Wikipedia","#"],
+          ["USHMM","#"]
+        ],
+        conf: "High — many primary sources."
+      },
+      "Stranger Things": {
+        title: "Stranger Things — franchise overview",
+        img: "https://picsum.photos/960/480?random=1",
+        tldr: [
+          "Netflix sci-fi series set in 80s Hawkins.",
+          "Cast, seasons, villains; Upside Down.",
+          "Spin-offs, memes, massive cultural impact."
+        ],
+        sources: [
+          ["Netflix","#"],
+          ["Fandom Wiki","#"],
+          ["Press","#"]
+        ],
+        conf: "High"
+      }
+    };
+
+    // merge user-created topics
+    function loadData(){
+      const user = JSON.parse(localStorage.getItem("surface:userTopics")||"{}");
+      return {...BASE, ...user};
+    }
+    let DATA = loadData();
+
+    const chips = document.getElementById("chips");
+    const q = document.getElementById("q");
+    const results = document.getElementById("results");
+    const lib = document.getElementById("lib");
+
+    function renderChips(){
+      chips.innerHTML = "";
+      Object.keys(DATA).forEach(t=>{
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.textContent = t;
+        b.onclick = ()=> ask(t);
+        chips.appendChild(b);
+      });
+    }
+
+    function card(key){
+      const d = DATA[key];
+      const el = document.createElement("article");
+      el.className = "card";
+      el.innerHTML = `
+        <h3>${d.title}<span class="badge">TL;DR</span></h3>
+        ${d.img ? `<img class="thumb" src="${d.img}" alt="">` : ""}
+        <ul>${d.tldr.map(x=>`<li>${x}</li>`).join("")}</ul>
+        <div class="meta">Confidence: ${d.conf}</div>
+        <div class="meta">Sources: ${d.sources.map(s=>`<a href="${s[1]}">${s[0]}</a>`).join(" • ")}</div>
+        <div class="actions">
+          <button class="btn" onclick="save('${key}')">Save</button>
+          <button class="btn" onclick="share('${key}')">Share</button>
+        </div>`;
+      return el;
+    }
+
+    function ask(txt){
+      results.innerHTML = "";
+      const keys = Object.keys(DATA).filter(k => k.toLowerCase().includes(txt.toLowerCase()));
+      if(!keys.length){
+        results.innerHTML = `<div class="card"><h3>No results (demo)</h3><p>Try: ${Object.keys(DATA).join(" • ")}</p></div>`;
+        return;
+      }
+      keys.forEach(k => results.appendChild(card(k)));
+    }
+    document.getElementById("ask").onclick = ()=> ask(q.value.trim());
+
+    function save(k){
+      const s = JSON.parse(localStorage.getItem("surface:saved")||"[]");
+      if(!s.includes(k)) s.push(k);
+      localStorage.setItem("surface:saved", JSON.stringify(s));
+      renderLib();
+    }
+    function share(k){
+      const text = `Surface deep-dive: ${DATA[k].title}`;
+      navigator.share ? navigator.share({title:"Surface", text}) : alert(text);
+    }
+    function renderLib(){
+      const s = JSON.parse(localStorage.getItem("surface:saved")||"[]");
+      lib.innerHTML = s.map(k => `<div class="card"><strong>${DATA[k].title}</strong></div>`).join("");
+    }
+
+    // theme toggle
+    document.getElementById("theme").onclick = ()=>{
+      const r = document.documentElement;
+      const next = r.getAttribute("data-theme")==="midnight" ? "light" : "midnight";
+      r.setAttribute("data-theme", next);
+      localStorage.setItem("surface:theme", next);
+    };
+
+    // add-topic flow (for fast prototyping)
+    document.getElementById("addTopic").onclick = ()=>{
+      const key = prompt("Topic key (e.g., 'Castles')");
+      if(!key) return;
+      const title = prompt("Card title (headline)");
+      const img = prompt("Image URL (optional)");
+      const bullets = prompt("TL;DR bullets (separate with ; )");
+      const d = {
+        title: title || key,
+        img: img || "",
+        tldr: (bullets||"").split(";").map(x=>x.trim()).filter(Boolean),
+        sources: [],
+        conf: "Unrated"
+      };
+      const user = JSON.parse(localStorage.getItem("surface:userTopics")||"{}");
+      user[key] = d;
+      localStorage.setItem("surface:userTopics", JSON.stringify(user));
+      DATA = loadData();
+      renderChips();
+      ask(key);
+    };
+
+    // init
+    (function(){
+      const t = localStorage.getItem("surface:theme");
+      if(t) document.documentElement.setAttribute("data-theme", t);
+      renderChips();
+      renderLib();
+    })();
+  </script>
+</body>
 </html>
